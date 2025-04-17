@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} – CRM{% endblock %}
+{% block content %}
+<div class="w-full max-w-2xl mx-auto bg-black p-8 rounded-lg">
+  <h1 class="text-3xl font-bold mb-4">{{ project.title }}</h1>
+  <p class="text-gray-400 mb-6">{{ project.description }}</p>
+  <dl class="space-y-4 text-gray-200">
+    <div><dt class="font-semibold">Client:</dt><dd class="ml-4">{{ project.client.name }}</dd></div>
+    <div><dt class="font-semibold">Status:</dt><dd class="ml-4">{{ project.get_status_display }}</dd></div>
+    <div><dt class="font-semibold">Start:</dt><dd class="ml-4">{{ project.start_date }}</dd></div>
+    {% if project.end_date %}
+      <div><dt class="font-semibold">End:</dt><dd class="ml-4">{{ project.end_date }}</dd></div>
+    {% endif %}
+    <div><dt class="font-semibold">Created:</dt><dd class="ml-4">{{ project.created_at|date:"M d, Y" }}</dd></div>
+  </dl>
+  <div class="mt-8">
+    <a href="{% url 'project_list' %}"
+       class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition">
+      Back to Projects
+    </a>
+    <a href="{% url 'client_list' %}" class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition">
+    Back to Clients
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Verification</title>
+    <style>
+      body { font-family: sans-serif; }
+      .message { margin: 10px 0; padding: 10px; border-radius: 5px; }
+      .error { background-color: #ffdddd; color: #d8000c; }
+      .success { background-color: #ddffdd; color: #270; }
+    </style>
+</head>
+<body>
+    <h1>Email Verification</h1>
+    {% if error %}
+        <div class="message error">{{ error }}</div>
+    {% elif message %}
+        <div class="message success">{{ message }}</div>
+    {% endif %}
+    <p><a href="{% url 'login' %}">Proceed to Login</a></p>
+</body>
+</html>

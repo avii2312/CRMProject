@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Clients – CRM{% endblock %}
+{% block content %}
+  <div class="w-full max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4 text-center">Your Clients</h1>
+
+    <!-- Search & Filter Form -->
+    <form method="get" class="flex flex-wrap gap-4 mb-6 justify-center">
+      <input
+        type="text"
+        name="q"
+        value="{{ q }}"
+        placeholder="Search name or email…"
+        class="px-3 py-2 bg-gray-900 text-white rounded focus:outline-none focus:ring-2 focus:ring-white flex-1 min-w-[200px]"
+      />
+
+      <select
+        name="company"
+        class="px-3 py-2 bg-gray-900 text-white rounded focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        <option value="">All Companies</option>
+        {% for comp in company_list %}
+          <option value="{{ comp }}" {% if comp == company %}selected{% endif %}>
+            {{ comp }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <button
+        type="submit"
+        class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition"
+      >
+        Filter
+      </button>
+      {% if q or company %}
+        <a
+          href="{% url 'client_list' %}"
+          class="px-4 py-2 border border-gray-500 rounded hover:bg-gray-700 transition text-gray-400"
+        >Clear</a>
+      {% endif %}
+    </form>
+
+    <!-- Client List -->
+    <ul class="space-y-4">
+      {% for client in clients %}
+        <li>
+          <a href="{% url 'client_detail' client.pk %}"
+             class="block p-4 bg-black border border-white rounded hover:bg-white hover:text-black transition">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">{{ client.name }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mono-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+            <p class="text-gray-400 mt-1 text-sm">
+              {{ client.company }} &bull; {{ client.contact_email }}
+            </p>
+          </a>
+        </li>
+      {% empty %}
+        <li class="text-center text-gray-500">No clients match your criteria.</li>
+      {% endfor %}
+    </ul>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+      <div class="mt-8 flex justify-center space-x-2">
+        {% if page_obj.has_previous %}
+          <a href="?{% if q %}q={{ q }}&{% endif %}{% if company %}company={{ company }}&{% endif %}page={{ page_obj.previous_page_number }}"
+             class="px-3 py-1 border border-white rounded hover:bg-white hover:text-black transition">Prev</a>
+        {% endif %}
+        <span class="px-3 py-1">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?{% if q %}q={{ q }}&{% endif %}{% if company %}company={{ company }}&{% endif %}page={{ page_obj.next_page_number }}"
+             class="px-3 py-1 border border-white rounded hover:bg-white hover:text-black transition">Next</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="container mx-auto px-6 py-8">
+    <!-- KPI Tiles -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- Open Tickets -->
+      <div class="bg-black border border-white rounded p-4 text-center">
+        <h2 class="text-lg font-semibold mb-2">Open Tickets</h2>
+        <p class="text-3xl">{{ open_tickets_count }}</p>
+      </div>
+      <!-- Projects in Progress -->
+      <div class="bg-black border border-white rounded p-4 text-center">
+        <h2 class="text-lg font-semibold mb-2">Projects in Progress</h2>
+        <p class="text-3xl">{{ projects_in_progress_count }}</p>
+      </div>
+      <!-- New Clients This Month -->
+      <div class="bg-black border border-white rounded p-4 text-center">
+        <h2 class="text-lg font-semibold mb-2">New Clients This Month</h2>
+        <p class="text-3xl">{{ new_clients_count }}</p>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <!-- Ticket Resolution Times Chart -->
+      <div class="bg-black border border-white rounded p-4">
+        <h2 class="text-lg font-semibold mb-4">Ticket Resolution Times</h2>
+        <canvas id="ticketResolutionChart"></canvas>
+      </div>
+      <!-- Project Statuses Chart -->
+      <div class="bg-black border border-white rounded p-4">
+        <h2 class="text-lg font-semibold mb-4">Project Statuses</h2>
+        <canvas id="projectStatusChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    {% for activity in recent_activities %}
+      <p>{{ activity.actor }} {{ activity.verb }} {{ activity.target }} ({{ activity.timestamp|timesince }} ago)</p>
+      {% empty %}
+      <p>No recent activity.</p>
+    {% endfor %}
+
+    <div class="bg-black border border-white rounded p-4">
+      <h2 class="text-lg font-semibold mb-4">Recent Activity</h2>
+      <div class="h-64 overflow-y-auto">
+        {% for activity in recent_activities %}
+          <div class="mb-4">
+            <p class="text-gray-400">{{ activity.actor }} {{ activity.verb }} {{ activity.target }} <span class="text-gray-600">({{ activity.timestamp|timesince }} ago)</span></p>
+          </div>
+        {% empty %}
+          <p class="text-gray-400">No recent activity.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js Script -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Ticket Resolution Times Chart
+    var ctx1 = document.getElementById('ticketResolutionChart').getContext('2d');
+    var ticketResolutionChart = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: {{ resolution_time_labels|safe }},
+        datasets: [{
+          label: 'Tickets',
+          data: {{ resolution_time_data }},
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Ticket Resolution Times'
+          }
+        },
+      },
+    });
+
+    // Project Statuses Chart
+    var ctx2 = document.getElementById('projectStatusChart').getContext('2d');
+    var projectStatusChart = new Chart(ctx2, {
+      type: 'pie',
+      data: {
+        labels: {{ project_status_labels|safe }},
+        datasets: [{
+          label: 'Projects',
+          data: {{ project_status_data }},
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.2)',
+            'rgba(54, 162, 235, 0.2)',
+            'rgba(255, 206, 86, 0.2)',
+            // Add more colors as needed
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            // Add more colors as needed
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          title: {
+            display: true,
+            text: 'Project Statuses'
+          }
+        },
+      },
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket #{{ ticket.id }} – CRM{% endblock %}
+
+{% block content %}
+  <div class="max-w-4xl mx-auto bg-black border border-white rounded p-6">
+    <h1 class="text-3xl font-bold mb-4">Ticket Details</h1>
+
+    <!-- Ticket Information -->
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold">Subject:</h2>
+      <p class="text-gray-400">{{ ticket.subject }}</p>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold">Description:</h2>
+      <p class="text-gray-400">{{ ticket.description }}</p>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold">Project:</h2>
+      <p class="text-gray-400">{{ ticket.project.title }}</p>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold">Status:</h2>
+      <p class="text-gray-400">{{ ticket.get_status_display }}</p>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold">Assigned To:</h2>
+      <p class="text-gray-400">
+        {% if ticket.assigned_to %}
+          {{ ticket.assigned_to.get_full_name }} ({{ ticket.assigned_to.username }})
+        {% else %}
+          Unassigned
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold">Created At:</h2>
+      <p class="text-gray-400">{{ ticket.created_at|date:"F d, Y H:i" }}</p>
+    </div>
+
+    <!-- Back to Tickets List -->
+    <div class="mt-6">
+      <a href="{% url 'ticket_list' %}" class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition">
+        Back to Tickets
+      </a>
+    </div>
+  </div>
+{% endblock %}

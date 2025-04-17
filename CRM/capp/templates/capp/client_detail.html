@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ client.name }} – CRM{% endblock %}
+{% block content %}
+  <div class="w-full max-w-2xl mx-auto bg-black p-8 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold mb-4">{{ client.name }}</h1>
+    <p class="text-gray-400 mb-6">{{ client.company }}</p>
+
+    <dl class="space-y-4 text-gray-200">
+      <div>
+        <dt class="font-semibold">Contact Email:</dt>
+        <dd class="ml-4">{{ client.contact_email }}</dd>
+      </div>
+      {% if client.contact_phone %}
+      <div>
+        <dt class="font-semibold">Contact Phone:</dt>
+        <dd class="ml-4">{{ client.contact_phone }}</dd>
+      </div>
+      {% endif %}
+      {% if client.address %}
+      <div>
+        <dt class="font-semibold">Address:</dt>
+        <dd class="ml-4 whitespace-pre-line">{{ client.address }}</dd>
+      </div>
+      {% endif %}
+      <div>
+        <dt class="font-semibold">Owner:</dt>
+        <dd class="ml-4">{{ client.owner.username }}</dd>
+      </div>
+      <div>
+        <dt class="font-semibold">Created At:</dt>
+        <dd class="ml-4">{{ client.created_at|date:"M d, Y H:i" }}</dd>
+      </div>
+    </dl>
+
+    <div class="mt-8 flex flex-wrap gap-4">
+      <a href="{% url 'project_list' %}?client_id={{ client.pk }}"
+         class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition">
+        View Projects
+      </a>
+      <a href="{% url 'ticket_list' %}?project_id=&quot;&quot;"
+         class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition">
+        View All Tickets
+      </a>
+      <a href="{% url 'client_list' %}"
+         class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition">
+        Back to Clients
+      </a>
+    </div>
+  </div>
+{% endblock %}

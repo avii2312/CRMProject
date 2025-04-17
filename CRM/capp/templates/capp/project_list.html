@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Projects – CRM{% endblock %}
+{% block content %}
+  <div class="w-full max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4 text-center">Projects</h1>
+
+    <!-- Optional: filter by client -->
+    <form method="get" class="flex justify-center mb-6 gap-4">
+      <select name="client_id"
+              class="px-3 py-2 bg-gray-900 text-white rounded focus:ring-2 focus:ring-white">
+        <option value="">All Clients</option>
+        {% for c in request.user.clients.all %}
+          <option value="{{ c.pk }}" {% if c.pk|stringformat:"s" == request.GET.client_id %}selected{% endif %}>
+            {{ c.name }}
+          </option>
+        {% endfor %}
+      </select>
+      <button type="submit"
+              class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition">
+        Filter
+      </button>
+      <a href="{% url 'client_list' %}" class="px-4 py-2 border border-white rounded hover:bg-white hover:text-black transition">
+            Back to Clients
+      </a>
+      {% if request.GET.client_id %}
+        <a href="{% url 'project_list' %}"
+           class="px-4 py-2 border border-gray-500 rounded hover:bg-gray-700 transition text-gray-400">
+          Clear
+        </a>
+      {% endif %}
+    </form>
+
+    <ul class="space-y-4">
+      {% for project in projects %}
+        <li>
+          <a href="{% url 'project_detail' project.pk %}"
+             class="block p-4 bg-black border border-white rounded hover:bg-white hover:text-black transition">
+            <div class="flex justify-between items-center">
+              <span class="font-semibold">{{ project.title }}</span>
+              <span class="text-sm text-gray-400">{{ project.get_status_display }}</span>
+            </div>
+            <p class="text-gray-400 mt-1 text-sm">
+              {{ project.client.name }} &bull; {{ project.start_date }}{% if project.end_date %}–{{ project.end_date }}{% endif %}
+            </p>
+          </a>
+
+        </li>
+      {% empty %}
+        <li class="text-center text-gray-500">No projects found.</li>
+      {% endfor %}
+    </ul>
+
+    {% if is_paginated %}
+      <div class="mt-8 flex justify-center space-x-2">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.client_id %}&client_id={{ request.GET.client_id }}{% endif %}"
+             class="px-3 py-1 border border-white rounded hover:bg-white hover:text-black transition">Prev</a>
+        {% endif %}
+        <span class="px-3 py-1">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.client_id %}&client_id={{ request.GET.client_id }}{% endif %}"
+             class="px-3 py-1 border border-white rounded hover:bg-white hover:text-black transition">Next</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

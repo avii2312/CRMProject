@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+    <style>
+      body { font-family: sans-serif; }
+      pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Welcome Home!</h1>
+    <p>You have successfully logged in.</p>
+    {% if access_token %}
+        <p>Your JWT Access Token:</p>
+        <pre>{{ access_token }}</pre>
+    {% endif %}
+    <p>
+        <a href="{% url 'logout' %}">Logout</a> |
+        <a href="{% url 'protected' %}">Access Protected API Data</a>
+    </p>
+</body>
+</html>
